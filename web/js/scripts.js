@@ -58,6 +58,7 @@ async function randomizeColors() {
 }
 
 async function start() {
+    $('.minigame-text').html(minigame.text)
     minigame.currentBar = 0
     minigame.lastBar = -1
     minigame.colors = await randomizeColors()
