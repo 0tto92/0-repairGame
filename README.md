@@ -7,3 +7,7 @@ Default texts are changeable in scripts.js (SUCCESS, FAIL)
 local successPercentage = exports['0-repairGame']:repairGame('easy', 'text')
 -- returns success percentage (0-100) (number)
 ```
+
+
+https://github.com/0tto92/0-repairGame/assets/109680629/95961558-03c9-4576-bce9-4a558841b075
+
