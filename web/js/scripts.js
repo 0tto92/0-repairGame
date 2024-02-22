@@ -1,5 +1,8 @@
 const RESOURCE_NAME = GetParentResourceName()
 const TOTAL_BARS = 20
+const DEFAULT_MINIGAME_TEXT = 'REPAIRING'
+const DEFAULT_FAIL_TEXT = 'FAIL'
+const DEFAULT_SUCCESS_TEXT = 'SUCCESS'
 const DIFFICULTIES = {
     'hard': {
         rounds: 7,
@@ -94,7 +97,7 @@ function barLoop() {
         minigame.roundStarted = false
 
         clearInterval(minigame.loop)
-        $('.minigame-text').html('EPÄONNISTUIT')
+        $('.minigame-text').html(DEFAULT_FAIL_TEXT)
 
         minigame.pastRounds++
         if (minigame.rounds > minigame.pastRounds) return setTimeout(start, 500)
@@ -151,7 +154,7 @@ window.addEventListener('message', function (ev) {
     if (event.type != 'repairGame' || minigame.started) return
 
     let difficulty = DIFFICULTIES[event.difficulty || 'easy']
-    let minigameText = event.text || 'KORJATAAN'
+    let minigameText = event.text || DEFAULT_MINIGAME_TEXT
 
     minigame.started = true
     minigame.rounds = difficulty.rounds
@@ -181,7 +184,7 @@ document.addEventListener('keydown', function(ev) {
     let success = minigame.colors[currentBar]
     if (success) minigame.succeeded++
     
-    $('.minigame-text').html(success && 'ONNISTUIT!' || 'EPÄONNISTUIT')
+    $('.minigame-text').html(success && DEFAULT_SUCCESS_TEXT || DEFAULT_FAIL_TEXT)
 
     minigame.pastRounds++
     if (minigame.rounds > minigame.pastRounds) return setTimeout(start, 500)
