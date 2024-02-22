@@ -1,6 +1,6 @@
 Simple minigame inspired from Car Mechanic Simulator 2021 [PREVIEW](https://streamable.com/rxv42m)
 
-[video](https://streamable.com/rxv42m)
+[![SHOWCASE](https://i.stack.imgur.com/Vp2cE.png)](https://streamable.com/rxv42m)
 
 Default texts are changeable in scripts.js (SUCCESS, FAIL)
 ```lua
