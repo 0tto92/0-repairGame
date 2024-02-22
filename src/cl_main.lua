@@ -10,9 +10,16 @@ local function repairGame(difficulty, text)
         text = text
     })
 
+    repeat Wait(100) until percentage and not gameStarted
+    percentage = nil
+
     SetNuiFocus(true, true)
     return percentage
 end exports('repairGame', repairGame)
+
+RegisterCommand('minigame', function()
+    repairGame('easy', 'HOMO')
+end)
 
 RegisterNUICallback('repairGameFinished', function(data, cb)
     if not gameStarted then print('nui devtools') return false end
