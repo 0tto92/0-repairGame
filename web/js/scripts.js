@@ -8,21 +8,21 @@ const DIFFICULTIES = {
         rounds: 7,
         speed: 30,
         correctBars: 2,
-        loopTimes: 1,
+        totalBounces: 1,
     }, 
 
     'medium': {
         rounds: 6,
         speed: 42,
         correctBars: 3,
-        loopTimes: 2,
+        totalBounces: 2,
     },
 
     'easy': {
         rounds: 3,
         speed: 45,
         correctBars: 6,
-        loopTimes: 3,
+        totalBounces: 3,
     }
 }
 
@@ -32,7 +32,7 @@ var minigame = {
     lastBar: -1,
     currentBar: 0,
     pastRounds: 0,
-    loopedTimes: 0,
+    bounced: 0,
     succeeded: 0
 }
 
@@ -91,9 +91,9 @@ function randomNumber(min, max) {
 }
 
 function barLoop() {
-    minigame.loopedTimes++
-    if (minigame.loopedTimes > minigame.loopTimes) {
-        minigame.loopedTimes = 0
+    minigame.bounced++
+    if (minigame.bounced > minigame.totalBounces) {
+        minigame.bounced = 0
         minigame.roundStarted = false
 
         clearInterval(minigame.loop)
@@ -139,7 +139,7 @@ function finished() {
             lastBar: -1,
             currentBar: 0,
             pastRounds: 0,
-            loopedTimes: 0,
+            bounced: 0,
             succeeded: 0
         }
 
@@ -159,7 +159,7 @@ window.addEventListener('message', function (ev) {
     minigame.started = true
     minigame.rounds = difficulty.rounds
     minigame.speed = difficulty.speed
-    minigame.loopTimes = difficulty.loopTimes
+    minigame.totalBounces = difficulty.totalBounces
     minigame.correctBars = difficulty.correctBars
     minigame.text = minigameText
 
@@ -176,7 +176,7 @@ document.addEventListener('keydown', function(ev) {
     if (keyPressed != ' ' || !minigame.roundStarted) return
 
     minigame.roundStarted = false
-    minigame.loopedTimes = 0
+    minigame.bounced = 0
     
     clearInterval(minigame.loop)
 
