@@ -1,23 +1,24 @@
-const resourceName = GetParentResourceName()
-const difficulties = {
+const RESOURCE_NAME = GetParentResourceName()
+const TOTAL_BARS = 20
+const DIFFICULTIES = {
     'hard': {
-        rounds: 5,
+        rounds: 7,
         speed: 30,
-        bars: 2,
+        correctBars: 2,
         loopTimes: 1,
     }, 
 
     'medium': {
-        rounds: 3,
+        rounds: 6,
         speed: 42,
-        bars: 3,
+        correctBars: 3,
         loopTimes: 2,
     },
 
     'easy': {
-        rounds: 2,
+        rounds: 3,
         speed: 45,
-        bars: 6,
+        correctBars: 6,
         loopTimes: 3,
     }
 }
@@ -32,40 +33,50 @@ var minigame = {
     succeeded: 0
 }
 
-async function appendBars() {
-    for (let i = 1; i <= 20; i++) {
+async function appendBars(totalBars, colors) {
+    for (let i = 1; i <= totalBars; i++) {
         if ($('#' + i).length) $('#' + i).remove()
 
-        var text = minigame.colors[i] && '+' || '-'
-        var color = text == '+' && '#489c56' || '#1A1A1A'
+        let minigameText = colors[i] && '+' || '-'
+        let barColor = minigameText == '+' && '#489c56' || '#1A1A1A'
 
-        $('.minigame-bars').append(`<div id = ${i} class="bar" style="background-color: ${color}">${text}</div>`)
+        $('.minigame-bars').append(`<div id = ${i} class="bar" style="background-color: ${barColor}">${minigameText}</div>`)
     }
 }
 
-async function randomizeColors() {
-    var colorTable = {}
-    for (let i = 1; i <= minigame.bars; i++) {
-        var number = randomNumber(1, 20)
-        while (colorTable[number]) {
-            number = randomNumber(1, 20)
-        }
+async function randomizeColors(totalBars, correctBars) {
+    if (correctBars >= totalBars) {
+        throw new Error("There must be less or as many correct bars as there are bars in total")
+    }
 
-        colorTable[number] = true
+    let colorTable = new Array(totalBars).fill(false);
+    let shuffleArray = Array.from({ length: totalBars}, (_, i) => i);
+    
+    for (let i = totalBars - 1; i > 0; i--) {
+        let rand = Math.floor(Math.random() * (i + 1));
+        [shuffleArray[i], shuffleArray[rand]] = [shuffleArray[rand], shuffleArray[i]]
+    }
+    
+    for (let i = 0; i < correctBars; i++) {
+        colorTable[shuffleArray[i]] = true;
     }
 
     return colorTable
 }
 
 async function start() {
+    let totalBars = TOTAL_BARS
+    let correctBars = minigame.correctBars
+    
+    let colors = await randomizeColors(totalBars, correctBars)
+    await appendBars(totalBars, colors)
+
     $('.minigame-text').html(minigame.text)
+    minigame.colors = colors
     minigame.currentBar = 0
     minigame.lastBar = -1
-    minigame.colors = await randomizeColors()
-    await appendBars()
 
     setTimeout(function(){
-        var currentRound = minigame.pastRounds
         minigame.roundStarted = true
 
         return barLoop()
@@ -91,12 +102,12 @@ function barLoop() {
         return setTimeout(finished, 500)
     }
 
-    var lastBar = minigame.lastBar
-    var currentBar = minigame.currentBar
-    var isBackwards = currentBar > 20 || !currentBar < 0
+    let lastBar = minigame.lastBar
+    let currentBar = minigame.currentBar
+    let isBackwards = currentBar > 20 || !currentBar < 0
     if (minigame.loop) clearInterval(minigame.loop)
 
-    var loop = setInterval(function() {
+    let loop = setInterval(function() {
         currentBar = isBackwards && currentBar -1 || !isBackwards && currentBar +1
         $('#' + lastBar).css('border', 'none')
         $('#' + lastBar).css('opacity', '1.0')
@@ -118,7 +129,7 @@ function finished() {
     setTimeout(function(){
         $('.minigame-bg').fadeOut()
               
-        var successPercentage = Math.floor(100 * (minigame.succeeded / minigame.rounds))
+        let successPercentage = Math.floor(100 * (minigame.succeeded / minigame.rounds))
         minigame = {
             started: false,
             roundStarted: false,
@@ -129,51 +140,51 @@ function finished() {
             succeeded: 0
         }
 
-        $.post('https://'+resourceName+'/repairGameFinished', JSON.stringify({
+        $.post('https://'+RESOURCE_NAME+'/repairGameFinished', JSON.stringify({
             percentage: successPercentage
         }))
     }, 1000)
 }
 
-window.addEventListener('message', function (event) {
-    var event = event.data;
-    if (event.type == 'repairGame') {
-        var difficulty = difficulties[event.difficulty || 'easy']
-        var text = event.text || 'KORJATAAN'
+window.addEventListener('message', function (ev) {
+    let event = ev.data;
+    if (event.type != 'repairGame' || minigame.started) return
 
-        minigame.rounds = difficulty.rounds
-        minigame.speed = difficulty.speed
-        minigame.loopTimes = difficulty.loopTimes
-        minigame.bars = difficulty.bars
-        minigame.text = text
+    let difficulty = DIFFICULTIES[event.difficulty || 'easy']
+    let minigameText = event.text || 'KORJATAAN'
 
-        $('.minigame-bg').css('display', 'flex').hide().fadeIn(200)
-        $('.minigame').css('display', 'flex').hide().fadeIn(200)
-        $('.minigame-bars').css('display', 'flex').hide().fadeIn(200)
-        $('.minigame-text').html(minigame.text)
+    minigame.started = true
+    minigame.rounds = difficulty.rounds
+    minigame.speed = difficulty.speed
+    minigame.loopTimes = difficulty.loopTimes
+    minigame.correctBars = difficulty.correctBars
+    minigame.text = minigameText
 
-        start()
-    }
+    $('.minigame-bg').css('display', 'flex').hide().fadeIn(200)
+    $('.minigame').css('display', 'flex').hide().fadeIn(200)
+    $('.minigame-bars').css('display', 'flex').hide().fadeIn(200)
+    $('.minigame-text').html(minigameText)
+
+    return start()
 })
 
 document.addEventListener('keydown', function(ev) {
-    var keyPressed = ev.key
-    if (keyPressed == ' ') {
-        if (!minigame.roundStarted) return
-        minigame.roundStarted = false
-        minigame.loopedTimes = 0
-        
-        clearInterval(minigame.loop)
+    let keyPressed = ev.key
+    if (keyPressed != ' ' || !minigame.roundStarted) return
 
-        var currentBar = minigame.currentBar
-        var success = minigame.colors[currentBar]
-        if (success) minigame.succeeded++
-        
-        $('.minigame-text').html(success && 'ONNISTUIT!' || 'EPÄONNISTUIT')
+    minigame.roundStarted = false
+    minigame.loopedTimes = 0
+    
+    clearInterval(minigame.loop)
 
-        minigame.pastRounds++
-        if (minigame.rounds > minigame.pastRounds) return setTimeout(start, 500)
+    let currentBar = minigame.currentBar
+    let success = minigame.colors[currentBar]
+    if (success) minigame.succeeded++
+    
+    $('.minigame-text').html(success && 'ONNISTUIT!' || 'EPÄONNISTUIT')
 
-        return setTimeout(finished, 500)
-    }
+    minigame.pastRounds++
+    if (minigame.rounds > minigame.pastRounds) return setTimeout(start, 500)
+
+    return setTimeout(finished, 500)
 })
