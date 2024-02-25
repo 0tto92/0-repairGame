@@ -10,10 +10,9 @@ local function repairGame(difficulty, text)
         text = text
     })
 
-    repeat Wait(100) until percentage and not gameStarted
-    percentage = nil
-
     SetNuiFocus(true, true)
+    repeat Wait(100) until percentage and not gameStarted
+
     return percentage
 end exports('repairGame', repairGame)
 
