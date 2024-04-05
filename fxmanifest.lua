@@ -6,7 +6,7 @@ client_scripts {
     '**/cl_*.lua'
 }
 
-ui_page "web/index.html"
+ui_page 'web/index.html'
 
 files {
     '**/*.html',
